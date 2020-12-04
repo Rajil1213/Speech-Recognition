@@ -2,43 +2,61 @@
 Defines two dictionaries for converting 
 between text and integer sequences.
 """
-
+# List of all the characters in dataset
 char_map_str = """
-' 0
-<SPACE> 1
-a 2
-b 3
-c 4
-d 5
-e 6
-f 7
-g 8
-h 9
-i 10
-j 11
-k 12
-l 13
-m 14
-n 15
-o 16
-p 17
-q 18
-r 19
-s 20
-t 21
-u 22
-v 23
-w 24
-x 25
-y 26
-z 27
+<SPACE>
+ं 
+् 
+ा 
+ि 
+ु 
+ृ 
+े 
+ै 
+ो 
+ौ 
+अ 
+आ 
+इ 
+उ 
+ए 
+ऐ 
+ओ 
+औ 
+क 
+ख 
+ग 
+घ 
+ङ 
+च 
+छ 
+ज 
+झ 
+ञ 
+त 
+थ 
+द 
+ध 
+न 
+प 
+फ 
+भ 
+म 
+य 
+र 
+ल 
+व 
+स 
+ह 
 """
-# the "blank" character is mapped to 28
-
-char_map = {}
+# Initialize all variables
+char_map ={}
 index_map = {}
-for line in char_map_str.strip().split('\n'):
-    ch, index = line.split()
-    char_map[ch] = int(index)
-    index_map[int(index)+1] = ch
-index_map[2] = ' '
+char_map_list = char_map_str.strip().split('\n')
+char_map_list=[char_map_list[i].strip() for i in range(len(char_map_list))]   
+
+# Create dictionaries to map letters to integers and vice versa
+for char in char_map_list:
+    index = char_map_list.index(char)
+    char_map[char] = index
+    index_map[index]=char
