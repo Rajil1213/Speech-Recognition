@@ -6,6 +6,7 @@ import json
 import wave
 from numpy import random
 from sys import argv, exit
+from tqdm import tqdm
 
 # Function to calculate duration of audio file
 def get_audio_duration(audio_path):
@@ -17,7 +18,8 @@ def get_audio_duration(audio_path):
 # Main Function 
 def main(data_directory):
     # Open tsv file
-    transcript= open("./sample_dataset/utt_spk_text_clean.tsv", "r")
+    transcript_path = os.path.join(data_directory, "utt_spk_text_clean.tsv")
+    transcript= open(transcript_path, "r")
     transcript_reader=csv.reader(transcript, delimiter="\t" )
     
     file_names=list()
@@ -38,7 +40,7 @@ def main(data_directory):
     texts = list()
     durations= list()
 
-    for file_name, label in sorted_zip:
+    for file_name, label in tqdm(sorted_zip):
         # For file name beginning with 0-7, Audio_0_7 directory 
         if re.match("(^[0-7])", file_name):
             audio_path=os.path.join(data_directory, "Audio_0_7", file_name+".wav")
@@ -67,7 +69,7 @@ def main(data_directory):
 
         if list(distribution).count(1)==threshold:
             for index, value in enumerate(distribution):
-                line = json.dumps({'path': paths[index],'duration':durations[index],'text': texts[index]}, ensure_ascii=False)
+                line = json.dumps({'key': paths[index],'duration':durations[index],'text': texts[index]}, ensure_ascii=False)
                 fm.write(line+"\n")
                 if value==1:
                     fv.write(line +"\n")
@@ -87,4 +89,3 @@ if __name__ == "__main__":
     data_directory = argv[1]
     main(data_directory)
 
-    
