@@ -4,7 +4,9 @@ import os
 import re
 import json
 import wave
+from numpy import random
 from sys import argv, exit
+from tqdm import tqdm
 
 # Function to calculate duration of audio file
 def get_audio_duration(audio_path):
@@ -14,11 +16,10 @@ def get_audio_duration(audio_path):
     return duration
 
 # Main Function 
-def main(data_directory, output_file):
-    # Key-words to drop line
-    numbers = ['१', '२', '३', '४', '५', '६', '७', '८', '९', '०']
+def main(data_directory):
     # Open tsv file
-    transcript= open("./dev-clean/Nepali/utt_spk_text_small.tsv", "r")
+    transcript_path = os.path.join(data_directory, "utt_spk_text_clean.tsv")
+    transcript= open(transcript_path, "r")
     transcript_reader=csv.reader(transcript, delimiter="\t" )
     
     file_names=list()
@@ -26,15 +27,8 @@ def main(data_directory, output_file):
 
     # Check and drop lines containing numbers
     for row in transcript_reader:
-        drop_line=False
-        for letter in row[2]:
-            if letter in numbers:
-                drop_line=True
-                break
-        # If not dropped check for audio file 
-        if not drop_line:
-            file_names.append(row[0])
-            labels.append(row[2])
+        file_names.append(row[0])
+        labels.append(row[2])
 
     transcript.close()
 
@@ -46,7 +40,7 @@ def main(data_directory, output_file):
     texts = list()
     durations= list()
 
-    for file_name, label in sorted_zip:
+    for file_name, label in tqdm(sorted_zip):
         # For file name beginning with 0-7, Audio_0_7 directory 
         if re.match("(^[0-7])", file_name):
             audio_path=os.path.join(data_directory, "Audio_0_7", file_name+".wav")
@@ -62,19 +56,36 @@ def main(data_directory, output_file):
             durations.append(duration)
             texts.append(label)
 
-    # Dump contents as dictionary in json
-    with open(output_file, 'w') as out_file:
-        for i in range(len(paths)):
-            line = json.dumps({'path': paths[i],'duration':durations[i],'text': texts[i]}, ensure_ascii=False)
-            out_file.write(line + '\n')
+    # Dump contents randomly into two json
+    size = len(paths)
+    print(size)
+    
+    fv = open("valid_corpus.json", "w")
+    ft = open("train_corpus.json", "w")
+    fm = open("main_corpus.json", "w")
+    threshold = int(0.2 * size)
+    while(True):
+        distribution = random.binomial(n=1, p=0.2, size=size)
+
+        if list(distribution).count(1)==threshold:
+            for index, value in enumerate(distribution):
+                line = json.dumps({'key': paths[index],'duration':durations[index],'text': texts[index]}, ensure_ascii=False)
+                fm.write(line+"\n")
+                if value==1:
+                    fv.write(line +"\n")
+                else:
+                    ft.write(line + "\n")
+        
+            fv.close()
+            ft.close()
+            fm.close()
+            break
 
 # Main function call
 if __name__ == "__main__":
-    if len(argv) !=3:
+    if len(argv) !=2:
         print("Error in command, exiting...")
         exit()
     data_directory = argv[1]
-    output_file = argv[2]
-    main(data_directory, output_file)
+    main(data_directory)
 
-    
